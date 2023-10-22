@@ -16,6 +16,7 @@ https://docs.google.com/presentation/d/1j9hSQHYjAj4E0IH6IbkJRo8WNnHKfrL-/edit?us
 About the Board:
 [ VVM501 ESP32 4G LTE MODULE ]
 VVM501 module combines features of A7670C 4G LTE module by SIMCOM with an ESP32 30 Pin WROOM 32 development board. A7670C 4G LTE modules allows for faster data speeds than traditional 3G and 2G networks.
+
 ![board 1](https://github.com/vaibhav13002/Smart-Farming/assets/134428799/086e1bd0-0b53-4416-bdce-c51d979f877c)
 ![board 2](https://github.com/vaibhav13002/Smart-Farming/assets/134428799/5d484ef1-544d-4a80-8574-cfff0f2db155)
 
