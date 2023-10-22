@@ -1,0 +1,17 @@
+//reset esp32 if board is taking lot of time to implement the code or you see continuous memory location printing on the serial monitor.
+
+#include <esp_system.h>
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);  // Give some time to open the serial monitor
+
+  Serial.println("Performing software reset...");
+  delay(1000);
+  
+  esp_restart();  // This function restarts the ESP32
+}
+
+void loop() {
+  // This code won't be executed after the reset
+}
