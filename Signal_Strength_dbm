@@ -1,0 +1,158 @@
+//code to check signal strength in dbm
+
+//Excellent/High Signal Strength: -50 dBm to -70 dBm
+//Good/Medium Signal Strength: -71 dBm to -85 dBm
+//Poor/Low Signal Strength: -86 dBm and below
+
+
+#define TINY_GSM_MODEM_SIM7600  // SIM7600 AT instruction is compatible with A7670
+#define SerialAT Serial1
+#define SerialMon Serial
+#define TINY_GSM_USE_GPRS true
+#include <TinyGsmClient.h>
+#define RXD2 27    //VVM501 MODULE RXD INTERNALLY CONNECTED
+#define TXD2 26    //VVM501 MODULE TXD INTERNALLY CONNECTED
+#define powerPin 4 ////VVM501 MODULE ESP32 PIN D4 CONNECTED TO POWER PIN OF A7670C CHIPSET, INTERNALLY CONNECTED
+
+// Define LED pins
+#define greenLEDPin 22  // Replace with the actual pin number for your green LED (High)
+#define yellowLEDPin 16 // Replace with the actual pin number for your yellow LED(Medium)
+#define redLEDPin 23    // Replace with the actual pin number for your red LED(Low
+char a, b;
+const char apn[] = "";
+
+TinyGsm modem(SerialAT);
+TinyGsmClient client(modem);
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(powerPin, OUTPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(yellowLEDPin, OUTPUT);
+  pinMode(redLEDPin, OUTPUT);
+
+  digitalWrite(powerPin, LOW);
+  delay(100);
+  digitalWrite(powerPin, HIGH);
+  delay(1000);
+  digitalWrite(powerPin, LOW);
+
+  Serial.println("\nConfiguring VVM501 Module. Please wait...");
+  delay(10000);
+  SerialAT.begin(115200, SERIAL_8N1, RXD2, TXD2);
+
+  // Initialize LEDs
+  digitalWrite(greenLEDPin, LOW);
+  digitalWrite(yellowLEDPin, LOW);
+  digitalWrite(redLEDPin, LOW);
+
+  if (!modem.init()) {
+    Serial.println("Failed to initialize modem. Please check the connection.");
+    return;
+  }
+
+  if (!modem.restart()) {
+    Serial.println("Failed to restart modem. Please check the connection.");
+    return;
+  }
+
+  String name = modem.getModemName();
+  Serial.println("Modem Name: " + name);
+  String modemInfo = modem.getModemInfo();
+  Serial.println("Modem Info: " + modemInfo);
+  Serial.println("Waiting for network...");
+
+  if (!modem.waitForNetwork()) {
+    Serial.println("Network registration failed. Please check the SIM card and signal.");
+    delay(10000);
+    return;
+  }
+
+  Serial.println("Network registration successful.");
+
+  if (modem.isNetworkConnected()) {
+    Serial.println("Network connected.");
+  }
+
+  Serial.print(F("Connecting to "));
+  Serial.print(apn);
+
+  if (!modem.gprsConnect(apn)) {
+    Serial.println("GPRS connection failed. Please check the APN settings.");
+    delay(10000);
+    return;
+  }
+
+  Serial.println("GPRS connection successful.");
+
+  if (modem.isGprsConnected()) {
+    Serial.println("LTE module connected.");
+  }
+
+  Serial.println("Enter standard AT commands like AT, AT+CPIN?, AT+CCLK?, etc.");
+  Serial.println("Select Serial Port Monitor as \"Both NL & CR\" to view command responses correctly if you are using Arduino IDE.");
+  Serial.println("Refer to the A7600 series datasheet for the entire list of commands.");
+  Serial.println("Understand the AT Commands properly. Incorrect AT commands can corrupt the 4G module memory!");
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    a = Serial.read();
+    SerialAT.write(a);
+  }
+  if (SerialAT.available() > 0) {
+    b = SerialAT.read();
+    Serial.write(b);
+  }
+
+  int signalStrength = getSignalStrength(); // Call the function to retrieve signal strength
+
+  // Display signal strength category
+  String signalCategory;
+  if (signalStrength > -85) {
+    signalCategory = "High";
+  } else if (signalStrength > -95) {
+    signalCategory = "Medium";
+  } else {
+    signalCategory = "Low";
+  }
+
+  // Print signal strength category and value in dBm
+  Serial.print("Signal Strength Category: ");
+  Serial.println(signalCategory);
+  Serial.print("Signal Strength (dBm): ");
+  Serial.println(signalStrength);
+
+  // Control the LEDs based on signal strength
+  if (signalStrength > -85) {
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(yellowLEDPin, LOW);
+    digitalWrite(redLEDPin, LOW);
+  } else if (signalStrength > -95) {
+    digitalWrite(greenLEDPin, LOW);
+    digitalWrite(yellowLEDPin, HIGH);
+    digitalWrite(redLEDPin, LOW);
+  } else {
+    digitalWrite(greenLEDPin, LOW);
+    digitalWrite(yellowLEDPin, LOW);
+    digitalWrite(redLEDPin, HIGH);
+  }
+}
+
+int getSignalStrength() {
+  SerialAT.println("AT+CSQ"); // Send AT command to query signal strength
+  delay(1000); // Wait for the response
+  int signalStrength = 0;
+
+  if (SerialAT.find("+CSQ: ")) { // Look for the signal strength response
+    signalStrength = SerialAT.parseInt(); // Parse the signal strength value
+  }
+
+  // Calculate signal strength in dBm
+  int dBmSignalStrength = -113 + 2 * signalStrength;
+
+  // Read and discard the rest of the response
+  SerialAT.readStringUntil('\n');
+
+  return dBmSignalStrength;
+}
