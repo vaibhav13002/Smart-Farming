@@ -1,9 +1,9 @@
 # Smart-Farming
-• Conceived, designed, and executed an innovative IoT-based smart farming system that leverages dedicated 4G connectivity to
+Conceived, designed, and executed an innovative IoT-based smart farming system that leverages dedicated 4G connectivity to
 revolutionize agricultural practices. The project aimed to optimize farming processes by harnessing data-driven insights and
 automation, all without relying on traditional Wi-Fi connections.
-• Used Blynk/Thingspeak at the start for testing,planned to use AWS cloud with Kodular app.
-• Getting Realtime data on Blynk app and serial mointor, with sms alert, can make call us AT commands.
+Used Blynk/Thingspeak at the start for testing,planned to use AWS cloud with Kodular app.
+Getting Realtime data on Blynk app and serial mointor, with sms alert, can make call us AT commands.
 
 
 Block Diagram :
